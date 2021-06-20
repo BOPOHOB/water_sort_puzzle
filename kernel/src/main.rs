@@ -1,146 +1,176 @@
-/*
-#636466 - gray
-#2e6337 - green
-#7f9530 - lime
-#67a1e0 - blue
-#682f8e - purple
-#392ebb - azure
-#d8677b - blush
-#b5392d - red
-#81d486 - aqua
-#774b1a - brown
-#db8f51 - coral
-#ecda6c - yellow
-*/
+#![feature(map_first_last)]
+mod flask;
+use std::collections::{ HashSet, BTreeMap };
+use flask::{ Liquid, Flask, Flasks };
+use std::hash::{ Hash, Hasher };
 
-#[derive(PartialEq)]
-enum Liquids {
-    Empty = 0,
-    Gray,
-    Green,
-    Lime,
-    Blue,
-    Purple,
-    Azure,
-    Blush,
-    Red,
-    Aqua,
-    Brown,
-    Coral,
-    Yellow,
+#[derive(Clone)]
+struct Viewed {
+    steps: Vec<(usize, usize)>,
+    state: Flasks,
 }
 
-struct Flask([Liquids; 4]);
+impl Hash for Viewed {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.state.hash(state);
+    }
+}
+impl PartialEq for Viewed {
+    fn eq(&self, other: &Self) -> bool {
+        self.state == other.state
+    }
+}
+impl Eq for Viewed {}
+struct Front(BTreeMap<u16, Vec<Viewed>>);
 
-impl Flask {
-    fn empty() -> Flask {
-        Flask([
-            Liquids::Empty,
-            Liquids::Empty,
-            Liquids::Empty,
-            Liquids::Empty,
-        ])
+impl Front {
+    fn set(&mut self, weight: u16, viewed: Viewed) {
+        match self.0.get_mut(&weight) {
+            Some(w) => { w.push(viewed); },
+            None => { self.0.insert(weight, vec![viewed]); },
+        };
     }
 
-    fn weight(&self) -> u16 {
-        let Flask(t) = self;
-        let mut result = 0;
-        for index1 in 0..t.len() {
-            for index2 in (index1 + 1)..t.len() {
-                result += if t[index1] != t[index2] { 10 } else { 0 }
+    fn pop_first(&mut self) -> Option<Viewed> {
+        match self.0.first_entry() {
+            Some(mut w) => {
+                if w.get().is_empty() {
+                    self.0.pop_first();
+                    self.pop_first()
+                } else {
+                    w.get_mut().pop()
+                }
+            }
+            None => None
+        }
+    }
+
+    fn len(&mut self) -> usize {
+        self.0.iter().map(|v| v.1.len()).sum()
+    }
+}
+
+fn search(flasks: &Flasks) -> Option<Vec<(usize, usize)>> {
+    let mut front: Front = Front(BTreeMap::new());
+    front.set(flasks.weight(), Viewed{ state: flasks.clone(), steps: Vec::new()});
+    let mut viewed: HashSet<Viewed> = HashSet::new();
+    let mut i = 0;
+    while let Option::Some(Viewed{ state, steps }) = front.pop_first() {
+        if i % 1000 == 100 {
+            println!("{}: {} {}", i, front.len(), steps.len());
+        }
+        i += 1;
+        for step in state.pours() {
+            let mut new_steps = steps.clone();
+            new_steps.push(step);
+            let addition = Viewed {
+                state: {
+                    let mut next = state.clone();
+                    next.pour(step.0, step.1);
+                    next
+                },
+                steps: new_steps,
+            };
+            if !viewed.contains(&addition) {
+                viewed.insert(addition.clone());
+                let weight = addition.state.weight();
+                if weight != 0 {
+                    front.set(addition.state.weight(), addition);
+                } else {
+                    return Some(addition.steps);
+                }
             }
         }
-        if result == 0 { 0 } else { result + 70 }
     }
+    Option::None
 }
 
-struct Flasks([Flask; 14]);
-
-impl Flasks {
-    fn weight(&self) -> u16 {
-        self.0.map(|flask| flask.weight()).sum()
+fn get_step_state(data: &Flasks, steps: &Vec<(usize, usize)>, step_id: usize) -> Flasks {
+    let mut result = data.clone();
+    for step_id in 0..step_id {
+        let (from, to) = steps[step_id];
+        result.pour(from, to);
     }
+    result
 }
 
 fn main() {
     let data = Flasks([
         Flask([
-            Liquids::Gray,
-            Liquids::Green,
-            Liquids::Blue,
-            Liquids::Lime,
+            Liquid::Gray,
+            Liquid::Green,
+            Liquid::Blue,
+            Liquid::Lime,
         ]),
         Flask([
-            Liquids::Red,
-            Liquids::Blush,
-            Liquids::Green,
-            Liquids::Purple,
+            Liquid::Red,
+            Liquid::Blush,
+            Liquid::Green,
+            Liquid::Purple,
         ]),
         Flask([
-            Liquids::Aqua,
-            Liquids::Brown,
-            Liquids::Gray,
-            Liquids::Azure,
+            Liquid::Aqua,
+            Liquid::Brown,
+            Liquid::Gray,
+            Liquid::Azure,
         ]),
         Flask([
-            Liquids::Blue,
-            Liquids::Lime,
-            Liquids::Blue,
-            Liquids::Brown,
+            Liquid::Blue,
+            Liquid::Lime,
+            Liquid::Blue,
+            Liquid::Brown,
         ]),
         Flask([
-            Liquids::Gray,
-            Liquids::Coral,
-            Liquids::Coral,
-            Liquids::Coral,
+            Liquid::Gray,
+            Liquid::Coral,
+            Liquid::Coral,
+            Liquid::Coral,
         ]),
         Flask([
-            Liquids::Red,
-            Liquids::Lime,
-            Liquids::Brown,
-            Liquids::Brown,
+            Liquid::Red,
+            Liquid::Lime,
+            Liquid::Brown,
+            Liquid::Brown,
         ]),
         Flask([
-            Liquids::Azure,
-            Liquids::Yellow,
-            Liquids::Red,
-            Liquids::Aqua,
+            Liquid::Azure,
+            Liquid::Yellow,
+            Liquid::Red,
+            Liquid::Aqua,
         ]),
         Flask([
-            Liquids::Red,
-            Liquids::Yellow,
-            Liquids::Coral,
-            Liquids::Gray,
+            Liquid::Red,
+            Liquid::Yellow,
+            Liquid::Coral,
+            Liquid::Gray,
         ]),
         Flask([
-            Liquids::Purple,
-            Liquids::Yellow,
-            Liquids::Aqua,
-            Liquids::Green,
+            Liquid::Purple,
+            Liquid::Yellow,
+            Liquid::Aqua,
+            Liquid::Green,
         ]),
         Flask([
-            Liquids::Purple,
-            Liquids::Blue,
-            Liquids::Yellow,
-            Liquids::Azure,
+            Liquid::Purple,
+            Liquid::Blue,
+            Liquid::Yellow,
+            Liquid::Azure,
         ]),
         Flask([
-            Liquids::Lime,
-            Liquids::Azure,
-            Liquids::Aqua,
-            Liquids::Blush,
+            Liquid::Lime,
+            Liquid::Azure,
+            Liquid::Aqua,
+            Liquid::Blush,
         ]),
         Flask([
-            Liquids::Blush,
-            Liquids::Blush,
-            Liquids::Green,
-            Liquids::Purple,
+            Liquid::Blush,
+            Liquid::Blush,
+            Liquid::Green,
+            Liquid::Purple,
         ]),
         Flask::empty(),
         Flask::empty(),
     ]);
-    for flask in data.0 {
-        println!("{}", flask.weight());
-    }
-    println!("whole weight {}", data.weight());
+    let result = search(&data).unwrap();
+    println!("{:?}", result.len());
 }
