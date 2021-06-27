@@ -12,15 +12,15 @@ code {
     monospace;
 }
 
-.App {
+.App>div {
   display: flex;
 }
 
-.App>div {
+.App>div>div {
   margin-left: 16px;
 }
 
-.App>div>div {
+.App>div>div>div {
   width: 16px;
   height: 16px;
 }
