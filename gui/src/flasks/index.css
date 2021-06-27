@@ -1,0 +1,46 @@
+.liquid {
+  width: 28px;
+  height: 28px;
+}
+
+.liquid:last-child {
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+
+.flask {
+  border-color:bisque;
+  border-width: 2px;
+  border-style: solid;
+  padding-top: 20px;
+  border-top: none;
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+
+.picker button {
+  max-width: 28px;
+  width: 28px;
+  min-height: 28px;
+  border: none;
+  margin-right: 2px;
+}
+
+.picker {
+  padding: 5px;
+  background-color: white;
+}
+
+.flasks {
+  display: flex;
+  flex-direction: column;
+  max-width: 500px;
+  min-width: 300px;
+  height: 300px;
+  justify-content: space-between;
+}
+
+.flasks_row {
+  display: flex;
+  justify-content: space-between;
+}
