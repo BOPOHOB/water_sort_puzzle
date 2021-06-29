@@ -1,15 +1,18 @@
 .liquid {
   width: 28px;
   height: 28px;
+  z-index: 2;
 }
 
 .liquid:last-child {
   border-bottom-left-radius: 14px;
   border-bottom-right-radius: 14px;
+  margin-bottom: -1px;
 }
 
 .flask {
-  border-color:bisque;
+  z-index: 3;
+  border-color:#bababa;
   border-width: 2px;
   border-style: solid;
   padding-top: 20px;

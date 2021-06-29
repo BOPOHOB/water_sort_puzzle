@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import FlasksWidget, { Liquid } from './flasks'
+import { Button } from 'antd';
+import { DoubleLeftOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
+import FlasksWidget, { Liquid, isValidFlasks } from './flasks'
 import type { Flask, Flasks } from './flasks';
 import type { get_step, search } from 'kernel';
 import "antd/dist/antd.css";
@@ -119,19 +121,47 @@ function App() {
       setSolution(kernel.search(forSolve));
     });
   }, []);
+  const [undecidable, setUndecidable] = useState(false);
   const onChange = useMemo(() => (n: Flasks) => {
     setData(n);
-    if (wasm) {
-      setSolution(wasm.search(n));
+    if (wasm && isValidFlasks(n)) {
+      const newSolution = wasm.search(n);
+      setSolution(newSolution);
+      setUndecidable(newSolution === null);
+    } else {
+      setSolution(null);
+      if (undecidable) {
+        setUndecidable(false);
+      }
     }
-  }, [wasm]);
+  }, [wasm, undecidable]);
+  const buttons = useMemo(() => ({
+    first: () => setStep(0),
+    prew: () => setStep(s => s - 1),
+    next: () => setStep(s => s + 1),
+  }), []);
   return (
     <div className="app">
-      <h2>{`Шаг ${step}${solution?.length ? `/${solution.length}` : ''}`}</h2>
+      {
+        undecidable ? (
+          <h2>Puzzle have not solution</h2>
+        ) : (
+          solution === null ? (
+            <h2>Complete the puzzle</h2>
+          ) : (
+            <h2>{`Step ${step}${solution?.length ? `/${solution.length}` : ''}`}</h2>
+          )
+        )
+      }
       <FlasksWidget
         value={step && solution && wasm ? wasm.get_step(forSolve, solution.slice(0, step)) : forSolve}
         onChange={step === 0 ? onChange : undefined}
       />
+      <div className="buttons">
+        <Button icon={<DoubleLeftOutlined />} onClick={buttons.first} disabled={step === 0 || !solution} />
+        <Button icon={<LeftOutlined />} onClick={buttons.prew} disabled={step === 0 || !solution} />
+        <Button icon={<RightOutlined />} onClick={buttons.next} disabled={step === solution?.length || !solution} />
+      </div>
     </div>
   );
 }

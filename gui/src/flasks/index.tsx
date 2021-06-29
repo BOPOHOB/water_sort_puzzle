@@ -42,6 +42,28 @@ export type Flask = [Liquid, Liquid, Liquid, Liquid];
 
 export type Flasks = Flask[];
 
+export const isValidFlasks = (f: Flasks): boolean => {
+  const counters = new Map(ALL_LIQUIDS.slice(1).map((v) => [v, 0]));
+  for (const flask of f) {
+    for (const liquid of flask) {
+      if (liquid !== Liquid.Empty) {
+        // @ts-ignore
+        counters.set(liquid, counters.get(liquid) + 1);
+      }
+    }
+  }
+  const countersIt = counters.values();
+  let isRunning = true;
+  while (isRunning) {
+    const { done, value } = countersIt.next();
+    isRunning = !done;
+    if (value !== 4 && isRunning) {
+      return false;
+    }
+  }
+  return true;
+}
+
 const PER_ROW = 7;
 
 type ColorPickerProps = {
@@ -68,11 +90,14 @@ const ColorPicker: FC<ColorPickerProps> = ({ children, onChange, value, allowEmp
     return children;
   }
   return (
-    <Dropdown overlay={(
+    <Dropdown placement="bottomCenter" overlay={(
       <div className="picker">
         {
           allLiquids.map((liquid, id) => (
-            <Button type="text" key={id} className={liquid.toLowerCase()} children="&nbsp;" onClick={onChangeLiquid[id]} size="small" />
+            <>
+              { id % 4 === 0 && id !== 0 && <br />}
+              <Button type="text" key={id} className={liquid.toLowerCase()} children="&nbsp;" onClick={onChangeLiquid[id]} size="small" />
+            </>
           ))
         }
       </div>

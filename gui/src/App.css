@@ -2,14 +2,23 @@ body {
   background-color: black !important;
 }
 
-h2 {
-  color: white !important;
+h2, h1 {
+  text-align: center;
+  color: #bababa !important;
 }
 
 .app {
   display: flex;
   align-items: center;
-  height: 100vh;
+  height: calc(100vh - 200px);
   justify-content: center;
   flex-direction: column;
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  width: 150px;
+  margin-left: -50px;
 }
