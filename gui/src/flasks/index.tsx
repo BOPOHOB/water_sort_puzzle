@@ -90,14 +90,14 @@ const ColorPicker: FC<ColorPickerProps> = ({ children, onChange, value, allowEmp
     return children;
   }
   return (
-    <Dropdown placement="bottomCenter" overlay={(
+    <Dropdown placement="bottom" overlay={(
       <div className="picker">
         {
           allLiquids.map((liquid, id) => (
-            <>
+            <React.Fragment key={id}>
               { id % 4 === 0 && id !== 0 && <br />}
-              <Button type="text" key={id} className={liquid.toLowerCase()} children="&nbsp;" onClick={onChangeLiquid[id]} size="small" />
-            </>
+              <Button type="text" className={liquid.toLowerCase()} children="&nbsp;" onClick={onChangeLiquid[id]} size="small" />
+            </React.Fragment>
           ))
         }
       </div>

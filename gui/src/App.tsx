@@ -4,7 +4,8 @@ import { DoubleLeftOutlined, LeftOutlined, RightOutlined } from '@ant-design/ico
 import FlasksWidget, { Liquid, isValidFlasks } from './flasks'
 import type { Flask, Flasks } from './flasks';
 import type { get_step, search } from 'kernel';
-import "antd/dist/antd.css";
+import kernel from 'kernel';
+import "antd/dist/reset.css";
 import './App.css';
 
 type Kernel = { get_step: typeof get_step, search: typeof search };
@@ -116,9 +117,11 @@ function App() {
   }, [step, solution?.length]);
   const [wasm, takeWasm] = useState<Kernel | null>(null);
   useEffect(() => {
-    import('kernel').then((kernel: Kernel) => {
-      takeWasm(kernel);
-      setSolution(kernel.search(forSolve));
+    kernel().then((module: Kernel) => {
+      console.log(forSolve, forSolve.length, Array.isArray(forSolve));
+      module.search(forSolve);
+      console.log(forSolve, forSolve.length, Array.isArray(forSolve));
+      takeWasm(module);
     });
   }, []);
   const [undecidable, setUndecidable] = useState(false);
